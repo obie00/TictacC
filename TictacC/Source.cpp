@@ -14,13 +14,11 @@ bool findLine(Mat snippet) {
 	Mat cdstP = snippet.clone();
 	vector<Vec4i> lines;
 	HoughLinesP(dst, lines, 1, CV_PI / 180, 30, 30, 10);
-	//cout << "lines is" << lines.size();
 	for (size_t i = 0; i < lines.size(); i++)
 	{
 		line(color_dst, Point(lines[i][0], lines[i][1]),
 			Point(lines[i][2], lines[i][3]), Scalar(0, 0, 255), 3, 8);
 	}
-	//imshow("finLine", color_dst);
 	if (lines.size() != 0) {
 		return true;
 	}
@@ -31,14 +29,11 @@ bool findLine(Mat snippet) {
 bool findCircle(Mat snippet) {
 	vector<Vec3f> circles;
 
-	/// Apply the Hough Transform to find the circles
 	HoughCircles(snippet, circles, CV_HOUGH_GRADIENT, 1, snippet.rows / 8, 200, 100, 0, 0);
 
 	return false;
 }
 Mat makeMat(Mat board, int x, int y, int width, int length) {
-	//cout <<"Makingcell\nboardwidth:"<< board.size().width << " boardheight: " << board.size().height<< "\n";
-	//cout << "x is " << x << " y is " << y << " width is " << width << " height is " << length << "\n";
 	if (x < 0) {
 		x = 0;
 	}
@@ -52,17 +47,11 @@ Mat makeMat(Mat board, int x, int y, int width, int length) {
 		length = board.size().height - y - 1;
 	}
 
-
 	Mat cellM = Mat(board, cv::Rect(x, y, width, length));
-	//imshow("ormakeCell", board);
-	//imshow("makeCell", cellM);
-	//cvWaitKey(0);
 	cvDestroyAllWindows();
 	return cellM;
 }
 Rect2i makeCell(Mat board, int x, int y, int width, int length) {
-	//cout <<"Makingcell\nboardwidth:"<< board.size().width << " boardheight: " << board.size().height<< "\n";
-	//cout << "x is " << x << " y is " << y << " width is " << width << " height is " << length << "\n";
 	if (x < 0) {
 		x = 0;
 	}
@@ -75,19 +64,12 @@ Rect2i makeCell(Mat board, int x, int y, int width, int length) {
 	if ((y + length) > board.size().height) {
 		width = board.size().height - y - 1;
 	}
-	//Mat cellM = Mat(board, cv::Rect(x, y, width, length));
 	Rect2i cellM = Rect(x, y, width, length);
-	//imshow("ormakeCell", board);
-	//imshow("makeCell", cellM);
-	//cvWaitKey(0);
 	cvDestroyAllWindows();
 	return cellM;
 }
 Rect2i* getCells(Mat board, vector<vector<Point> > contours, vector<Point> scontours) {
 	int t1 = 0, r1 = 0, b1 = 1000, l1 = 1000, t2 = 0, r2 = 0, b2 = 1000, l2 = 1000;
-	//imshow("getCells", board);
-
-	//cout << "Getting cells\ncontour[" << phase << "] has" << contours.size() << "points\n";
 
 	for (int i = 0; i < contours.size(); i++) {
 		for (int j = 0; j < contours[i].size(); j++) {
@@ -103,7 +85,6 @@ Rect2i* getCells(Mat board, vector<vector<Point> > contours, vector<Point> scont
 			if (contours[i][j].x < l1) {
 				l1 = contours[i][j].x;
 			}
-			//cout << contours[i][j] << "->";
 
 		}
 	}
@@ -120,10 +101,7 @@ Rect2i* getCells(Mat board, vector<vector<Point> > contours, vector<Point> scont
 		if (scontours[i].x < l2) {
 			l2 = scontours[i].x;
 		}
-		//cout << scontours[i] << "->";
 	}
-	//cout << "t1: " << t1 << " r1: " << r1 << " b1: " << b1 << " l1: " << l1 << "\nt2: " << t2 << " r2: " << r2 << " b2: " << b2 << " l2: " << l2 << "\n";
-	//Mat splitCells[9];
 	static Rect2i splitCells[9];
 	splitCells[0] = makeCell(board, l1, b1, l2 - l1, b2 - b1);
 	splitCells[1] = makeCell(board, l2, b1, r2 - l2, b2 - b1);
@@ -140,7 +118,6 @@ Rect2i* getCells(Mat board, vector<vector<Point> > contours, vector<Point> scont
 }
 
 bool checkborders(Rect box, Mat snippet) {
-	//makeCell(snippet);
 	int x = box.x;
 	int y = box.y;
 	int height = box.height;
@@ -164,7 +141,7 @@ bool checkborders(Rect box, Mat snippet) {
 		return false;
 	}
 	else if (findLine(makeMat(snippet, x + width - 10, y + height + 10, 20, height)) == false) {
-		//return false;
+		return false;
 	}
 	 if (findLine(makeMat(snippet, x + width + 10, y + height - 10, width, 20)) == false) {
 		return false;
@@ -183,17 +160,16 @@ void displayCells(Mat dst, Rect2i cells[9]) {
 	}
 }
 
-Rect2i* findGrid(Mat src, Mat bw, vector<vector<Point> > contours, Rect2i* cells) {
+Rect2i* findGrid(Mat src, Mat src_opt, vector<vector<Point> > contours, Rect2i* cells) {
 	vector<Point> approx;
 	for (int i = 0; i < contours.size(); i++)
 	{
 		approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, true);
-		// Skip small or non-convex objects
 		if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx)) {
 			continue;
 		}
 		if (approx.size() == 4) {
-			if (checkborders(boundingRect(contours[i]), bw) == true) {
+			if (checkborders(boundingRect(contours[i]), src_opt) == true) {
 				cout << "TTT exists";
 				cells = getCells(src, contours, contours[i]);
 				break;
@@ -203,10 +179,10 @@ Rect2i* findGrid(Mat src, Mat bw, vector<vector<Point> > contours, Rect2i* cells
 	return cells;
 }
 
-void drawContours(Mat bw, vector<vector<Point> > contours, vector<Vec4i> hierarchy) {
+void drawContours(Mat src_opt, vector<vector<Point> > contours, vector<Vec4i> hierarchy) {
 	Scalar color = Scalar(200, 200, 200);
 
-	Mat drawing = Mat::zeros(bw.size(), CV_8UC3);
+	Mat drawing = Mat::zeros(src_opt.size(), CV_8UC3);
 	for (size_t i = 0; i < contours.size(); i++)
 	{
 		Scalar color(rand() & 255, rand() & 255, rand() & 255);
@@ -218,74 +194,46 @@ void drawContours(Mat bw, vector<vector<Point> > contours, vector<Vec4i> hierarc
 }
 
 Mat optimizeImage(Mat src) {
-	Mat bw;
-	cvtColor(src, bw, CV_BGR2GRAY);
-	blur(bw, bw, Size(3, 3));
-	Canny(bw, bw, 80, 240, 3);
-	imshow("bw", bw);
+	Mat src_opt;
+	cvtColor(src, src_opt, CV_BGR2GRAY);
+	blur(src_opt, src_opt, Size(3, 3));
+	Canny(src_opt, src_opt, 80, 240, 3);
+	imshow("src_opt", src_opt);
 	cvWaitKey(0);
 	cvDestroyAllWindows();
 
-	return bw;
+	return src_opt;
 }
 
 int main()
 {
 	bool isT = false;
 	Mat src;
-	Mat bw;
+	Mat src_opt;
 	Mat dst;
 	Rect2i* cells = NULL;
 	vector<Point> approx;
 	vector<Vec4i> hierarchy;
 	vector<vector<Point> > contours;
-	src = imread("TestImages\\ti9.jpg");
+	src = imread("TestImages\\ti0.png");
+	if (src.data == NULL) {
+		cout << "image not found\n";
+		system("pause");
+		return 0;
+	}
+	src_opt = optimizeImage(src);
 
-	optimizeImage(src);
-
-	findContours(bw.clone(), contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
+	findContours(src_opt.clone(), contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
 
 	src.copyTo(dst);
 	
-	cells = findGrid(src, bw, contours, cells);
-
-	/*for (int i = 0; i < contours.size(); i++)
-	{
-		approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, true);
-		// Skip small or non-convex objects
-		if (std::fabs(cv::contourArea(contours[i])) < 100) {// || !cv::isContourConvex(approx)) {
-			continue;
-		}
-		if (approx.size() == 4) {
-			if (checkborders(boundingRect(contours[i]), bw) == true) {
-				cout << "TTT exists";
-				isT = true;
-				cells = getCells(src, contours, contours[i]);
-				break;
-			}
-		}
-	}*/
+	cells = findGrid(src, src_opt, contours, cells);
 
 	if (cells != NULL) {
 		displayCells(dst, cells);
 	}
 	
-	drawContours(bw, contours, hierarchy);
-	/*
-	Scalar color = Scalar(200, 200, 200);
-
-	Mat drawing = Mat::zeros(bw.size(), CV_8UC3);
-	for (size_t i = 0; i < contours.size(); i++)
-	{
-		Scalar color(rand() & 255, rand() & 255, rand() & 255);
-		drawContours(drawing, contours, (int)i, color, 2, 8, hierarchy, 0, Point());
-	}
-	imshow("drawing", drawing);
-	cvWaitKey(0);
-	*/
-
-	//imshow("src", src);
-	//imshow("dst", dst);
+	drawContours(src_opt, contours, hierarchy);
 	
 	cvDestroyAllWindows();
 	return 0;
