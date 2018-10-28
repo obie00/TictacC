@@ -49,8 +49,10 @@ Mat makeMat(Mat board, int x, int y, int width, int length) {
 		width = board.size().width - x - 1;
 	}
 	if ((y + length) > board.size().height) {
-		width = board.size().height - y - 1;
+		length = board.size().height - y - 1;
 	}
+
+
 	Mat cellM = Mat(board, cv::Rect(x, y, width, length));
 	//imshow("ormakeCell", board);
 	//imshow("makeCell", cellM);
@@ -162,14 +164,70 @@ bool checkborders(Rect box, Mat snippet) {
 		return false;
 	}
 	else if (findLine(makeMat(snippet, x + width - 10, y + height + 10, 20, height)) == false) {
-		return false;
+		//return false;
 	}
-	else if (findLine(makeMat(snippet, x + width + 10, y + height - 10, width, 20)) == false) {
+	 if (findLine(makeMat(snippet, x + width + 10, y + height - 10, width, 20)) == false) {
 		return false;
 	}
 	return true;
 }
 
+void displayCells(Mat dst, Rect2i cells[9]) {
+	cout << "cells are";
+	for (int i = 0; i < 9; i++) {
+		cout << cells[i] << "->";
+		Mat thiscell = Mat(dst, cells[i]);
+		imshow("thiscell", thiscell);
+		cvWaitKey(0);
+		cvDestroyAllWindows();
+	}
+}
+
+Rect2i* findGrid(Mat src, Mat bw, vector<vector<Point> > contours, Rect2i* cells) {
+	vector<Point> approx;
+	for (int i = 0; i < contours.size(); i++)
+	{
+		approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, true);
+		// Skip small or non-convex objects
+		if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx)) {
+			continue;
+		}
+		if (approx.size() == 4) {
+			if (checkborders(boundingRect(contours[i]), bw) == true) {
+				cout << "TTT exists";
+				cells = getCells(src, contours, contours[i]);
+				break;
+			}
+		}
+	}
+	return cells;
+}
+
+void drawContours(Mat bw, vector<vector<Point> > contours, vector<Vec4i> hierarchy) {
+	Scalar color = Scalar(200, 200, 200);
+
+	Mat drawing = Mat::zeros(bw.size(), CV_8UC3);
+	for (size_t i = 0; i < contours.size(); i++)
+	{
+		Scalar color(rand() & 255, rand() & 255, rand() & 255);
+		drawContours(drawing, contours, (int)i, color, 2, 8, hierarchy, 0, Point());
+	}
+	imshow("drawing", drawing);
+	cvWaitKey(0);
+	cvDestroyAllWindows();
+}
+
+Mat optimizeImage(Mat src) {
+	Mat bw;
+	cvtColor(src, bw, CV_BGR2GRAY);
+	blur(bw, bw, Size(3, 3));
+	Canny(bw, bw, 80, 240, 3);
+	imshow("bw", bw);
+	cvWaitKey(0);
+	cvDestroyAllWindows();
+
+	return bw;
+}
 
 int main()
 {
@@ -178,51 +236,57 @@ int main()
 	Mat bw;
 	Mat dst;
 	Rect2i* cells = NULL;
-	vector<vector<Point> > contours;
 	vector<Point> approx;
+	vector<Vec4i> hierarchy;
+	vector<vector<Point> > contours;
+	src = imread("TestImages\\ti9.jpg");
 
-	src = imread("TestImages\\ti1.jpg");
-	cvtColor(src, bw, CV_BGR2GRAY);
-	blur(bw, bw, Size(3, 3));
-	Canny(bw, bw, 80, 240, 3);
-	//imshow("bw", bw);
+	optimizeImage(src);
 
-
-	// Find contours
-	findContours(bw.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+	findContours(bw.clone(), contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
 
 	src.copyTo(dst);
-	if (isT == false) {
-		for (int i = 0; i < contours.size(); i++)
-		{
-			approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, true);
-			// Skip small or non-convex objects
-			if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx)) {
-				continue;
-			}
-			if (approx.size() == 4) {
-				if (checkborders(boundingRect(contours[i]), bw) == true) {
-					cout << "TTT exists";
-					isT = true;
-					cells = getCells(src, contours, contours[i]);
-					break;
-				}
+	
+	cells = findGrid(src, bw, contours, cells);
+
+	/*for (int i = 0; i < contours.size(); i++)
+	{
+		approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, true);
+		// Skip small or non-convex objects
+		if (std::fabs(cv::contourArea(contours[i])) < 100) {// || !cv::isContourConvex(approx)) {
+			continue;
+		}
+		if (approx.size() == 4) {
+			if (checkborders(boundingRect(contours[i]), bw) == true) {
+				cout << "TTT exists";
+				isT = true;
+				cells = getCells(src, contours, contours[i]);
+				break;
 			}
 		}
+	}*/
+
+	if (cells != NULL) {
+		displayCells(dst, cells);
 	}
-	if (isT == true) {
-		cout << "cells are";
-		for (int i = 0; i < 9; i++) {
-			cout << cells[i] << "->";
-			Mat thiscell = Mat(dst, cells[i]);
-			imshow("thiscell", thiscell);
-			cvWaitKey(0);
-			cvDestroyAllWindows();
-		}
+	
+	drawContours(bw, contours, hierarchy);
+	/*
+	Scalar color = Scalar(200, 200, 200);
+
+	Mat drawing = Mat::zeros(bw.size(), CV_8UC3);
+	for (size_t i = 0; i < contours.size(); i++)
+	{
+		Scalar color(rand() & 255, rand() & 255, rand() & 255);
+		drawContours(drawing, contours, (int)i, color, 2, 8, hierarchy, 0, Point());
 	}
-	imshow("src", src);
-	imshow("dst", dst);
+	imshow("drawing", drawing);
 	cvWaitKey(0);
+	*/
+
+	//imshow("src", src);
+	//imshow("dst", dst);
+	
 	cvDestroyAllWindows();
 	return 0;
 }
