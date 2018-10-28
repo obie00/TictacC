@@ -1,13 +1,13 @@
 Tests that currently work as intended:
-ti0.png
-ti2.png
-ti3.png
-ti6.png
-ti8.png
-ti1.jpg
-t17.jpg
-ti9.jpg
+ti0.png<br/>
+ti2.png<br/>
+ti3.png<br/>
+ti6.png<br/>
+ti8.png(not really working well)<br/>
+ti1.jpg<br/>
+t17.jpg<br/>
+ti9.jpg<br/>
 
 Tests that don't work
-ti5.jpg
-tip0.jpg
+ti5.jpg<br/>
+tip0.jpg<br/>
