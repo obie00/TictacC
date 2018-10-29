@@ -134,10 +134,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GameManager.cpp" />
+    <ClCompile Include="ImageManager.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameManager.h" />
+    <ClInclude Include="ImageManager.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

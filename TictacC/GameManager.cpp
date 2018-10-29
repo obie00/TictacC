@@ -17,6 +17,9 @@ gameStates GameManager::getGameState() {
 }
 
 void GameManager::setGameState(gameStates state) {
+	if (gameState == gameOver) {
+		return;
+	}
 	gameState = state;
 	switch (state) {
 	case cheated:
