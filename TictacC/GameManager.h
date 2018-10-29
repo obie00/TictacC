@@ -5,6 +5,7 @@ enum gameStates {
 	waitingforPlayer,
 	waitingforCpu,
 	gameOver,
+	cheated,
 };
 enum playerOptions {
 	X,
@@ -14,22 +15,23 @@ enum playerOptions {
 class GameManager
 {
 public:
-	gameStates gameState = notStarted;
+	playerOptions cpu;
+	playerOptions player;
 	void startGame(playerOptions playerCharacter);
 	void cpuPlay();
 	void playerPlay(int tile);
+	std::vector<int> slotsLeft = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+	gameStates getGameState();
+	void setGameState(gameStates state);
 	GameManager(playerOptions playerCharacter);
 	~GameManager();
 
 private:
+	gameStates gameState = notStarted;
 	playerOptions gridSlots[9];
-	playerOptions cpu;
-	playerOptions player;
-	std::vector<int> slotsLeft;
 	std::vector<int> cpuSlotsPlayed;
 	int movesLeft = 9;
 	int randomTile();
 	void updateGrid(int tile, playerOptions option);
-	void continueGame();
 };
 

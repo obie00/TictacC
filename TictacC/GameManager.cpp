@@ -12,8 +12,23 @@ GameManager::~GameManager()
 
 }
 
+gameStates GameManager::getGameState() {
+	return gameState;
+}
+
+void GameManager::setGameState(gameStates state) {
+	gameState = state;
+	if (state == gameOver) {
+		//end game
+	}
+	else if (state = cheated)
+	{
+		//end game
+	}
+}
+
 int GameManager::randomTile() {
-	int tile = rand() % slotsLeft.size;
+	int tile = (int)rand() % slotsLeft.size();
 	tile = slotsLeft[tile];
 	return tile;
 }
@@ -21,8 +36,8 @@ int GameManager::randomTile() {
 void GameManager::updateGrid(int tile, playerOptions option) {
 	slotsLeft.erase(slotsLeft.begin() + tile);
 	gridSlots[tile] = option;
-	if (slotsLeft.size == 0) {
-		gameState = gameOver;
+	if (slotsLeft.size() == 0) {
+		setGameState(gameOver);
 	}
 }
 
@@ -30,23 +45,23 @@ void GameManager::cpuPlay(){
 	int tile = randomTile();
 	updateGrid(tile, cpu);
 	cpuSlotsPlayed.push_back(tile);
-	gameState = waitingforPlayer;
+	setGameState(waitingforPlayer);
 }
 
 void GameManager::playerPlay(int tile) {
 	updateGrid(tile, player);
-	gameState = waitingforCpu;
+	setGameState(waitingforCpu);
 }
 
 void GameManager::startGame(playerOptions playerCharacter) {
 	if (playerCharacter == X) {
 		player = X;
 		cpu = O;
-		gameState = waitingforPlayer;
+		setGameState(waitingforPlayer);
 	}
 	else {
 		player = O;
 		cpu = X;
-		gameState = waitingforCpu;
+		setGameState(waitingforCpu);
 	}
 }

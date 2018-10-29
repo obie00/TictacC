@@ -2,8 +2,9 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "iostream"
-
 #include <vector>
+#include "GameManager.h"
+
 using namespace cv;
 using namespace std;
 
@@ -204,9 +205,22 @@ Mat optimizeImage(Mat src) {
 
 	return src_opt;
 }
+playerOptions detectImage(int cell) {
+	if (cell == 0) {
+		return X;
+	}
+	else if (cell == 1) {
+		return O;
+	}
+	return E;
+}
+void compareGrids(GameManager TTT, playerOptions imageGrid) {
+	//for(int i = 0; i < TTT.){}
+}
 
 int main()
 {
+	/*
 	bool isT = false;
 	Mat src;
 	Mat src_opt;
@@ -221,20 +235,39 @@ int main()
 		system("pause");
 		return 0;
 	}
+
 	src_opt = optimizeImage(src);
-
 	findContours(src_opt.clone(), contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
-
 	src.copyTo(dst);
-	
 	cells = findGrid(src, src_opt, contours, cells);
-
 	if (cells != NULL) {
 		displayCells(dst, cells);
 	}
+	else {
+		cout << "can't find board";
+	}
 	
+
+
+
 	drawContours(src_opt, contours, hierarchy);
-	
-	cvDestroyAllWindows();
+	cvDestroyAllWindows();*/
+
+	playerOptions playerCharacter = X;
+	GameManager TTT(playerCharacter);
+	while (TTT.getGameState() != gameOver) {
+		for (int i = 0; i < TTT.slotsLeft.size(); i++) {
+			playerOptions choice = detectImage(TTT.slotsLeft[i]);
+			if (choice == TTT.player) {
+				TTT.playerPlay(TTT.slotsLeft[i]);
+			}
+			else if (choice == TTT.cpu) {
+				TTT.setGameState(cheated);
+			}
+			else {
+				continue;
+			}
+		}
+	}
 	return 0;
 }
