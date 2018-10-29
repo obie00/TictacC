@@ -4,7 +4,7 @@
 
 int main()
 {
-	char file[40] = "TestImages\\ti0.png";
+	char file[40] = "TestImages\\tip1.jpg";
 	ImageManager TTTimage(file);
 
 	playerOptions playerCharacter = X;
