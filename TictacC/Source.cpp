@@ -199,17 +199,18 @@ Mat optimizeImage(Mat src) {
 	cvtColor(src, src_opt, CV_BGR2GRAY);
 	blur(src_opt, src_opt, Size(3, 3));
 	Canny(src_opt, src_opt, 80, 240, 3);
-	imshow("src_opt", src_opt);
-	cvWaitKey(0);
 	cvDestroyAllWindows();
 
 	return src_opt;
 }
-playerOptions detectImage(int cell) {
-	if (cell == 0) {
+playerOptions detectImage(Mat src,int cell) {
+	cout << "Enter a value for cell[" << cell << "]: ";
+	cin >> cell;
+	cout << "\n";
+	if (cell == 1) {
 		return X;
 	}
-	else if (cell == 1) {
+	else if (cell == 2) {
 		return O;
 	}
 	return E;
@@ -220,7 +221,6 @@ void compareGrids(GameManager TTT, playerOptions imageGrid) {
 
 int main()
 {
-	/*
 	bool isT = false;
 	Mat src;
 	Mat src_opt;
@@ -241,7 +241,7 @@ int main()
 	src.copyTo(dst);
 	cells = findGrid(src, src_opt, contours, cells);
 	if (cells != NULL) {
-		displayCells(dst, cells);
+		//displayCells(dst, cells);
 	}
 	else {
 		cout << "can't find board";
@@ -251,13 +251,13 @@ int main()
 
 
 	drawContours(src_opt, contours, hierarchy);
-	cvDestroyAllWindows();*/
+	cvDestroyAllWindows();
 
 	playerOptions playerCharacter = X;
 	GameManager TTT(playerCharacter);
 	while (TTT.getGameState() != gameOver) {
 		for (int i = 0; i < TTT.slotsLeft.size(); i++) {
-			playerOptions choice = detectImage(TTT.slotsLeft[i]);
+			playerOptions choice = detectImage(src, TTT.slotsLeft[i]);
 			if (choice == TTT.player) {
 				TTT.playerPlay(TTT.slotsLeft[i]);
 			}
@@ -267,6 +267,7 @@ int main()
 			else {
 				continue;
 			}
+			break;
 		}
 	}
 	return 0;

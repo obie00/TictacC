@@ -18,6 +18,16 @@ gameStates GameManager::getGameState() {
 
 void GameManager::setGameState(gameStates state) {
 	gameState = state;
+	switch (state) {
+	case cheated:
+		setGameState(gameOver);
+		break;
+	case gameOver:
+		break;
+	case waitingforCpu:
+		cpuPlay();
+		break;
+	}
 	if (state == gameOver) {
 		//end game
 	}
@@ -33,8 +43,15 @@ int GameManager::randomTile() {
 	return tile;
 }
 
+void GameManager::removeSlot(int tile) {
+	std::vector<int>::iterator position = std::find(slotsLeft.begin(), slotsLeft.end(), tile);
+	if (position != slotsLeft.end()) {
+		slotsLeft.erase(position);
+	}
+}
+
 void GameManager::updateGrid(int tile, playerOptions option) {
-	slotsLeft.erase(slotsLeft.begin() + tile);
+	removeSlot(tile);
 	gridSlots[tile] = option;
 	if (slotsLeft.size() == 0) {
 		setGameState(gameOver);

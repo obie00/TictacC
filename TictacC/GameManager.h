@@ -8,9 +8,9 @@ enum gameStates {
 	cheated,
 };
 enum playerOptions {
+	E,
 	X,
 	O,
-	E,
 };
 class GameManager
 {
@@ -33,5 +33,6 @@ private:
 	int movesLeft = 9;
 	int randomTile();
 	void updateGrid(int tile, playerOptions option);
+	void removeSlot(int tile);
 };
 
