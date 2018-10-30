@@ -36,7 +36,9 @@ private:
 	Rect2i makeCell(int x, int y, int width, int length);
 	Rect2i* getCells(vector<Point> scontours);
 	bool checkborders(Rect box);
-	Mat optimizeImage();
+	Mat optimizeImage(Mat src);
+	bool isX(Mat snippet);
+	bool isO(Mat snippet);
 	void compareGrids();
 };
 
