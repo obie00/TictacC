@@ -9,12 +9,12 @@ ImageManager::ImageManager(char file[40])
 		system("pause");
 		return;
 	}
-	src_opt = optimizeImage();
+	src_opt = optimizeImage(src);
 	findContours(src_opt.clone(), contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
 	src.copyTo(dst);
 	findGrid();
 	if (cells != NULL) {
-		displayCells();
+		//displayCells();
 	}
 	else {
 		cout << "can't find board";
@@ -50,8 +50,7 @@ bool ImageManager::findLine(Mat snippet) {
 }
 bool ImageManager::findCircle(Mat snippet) {
 	vector<Vec3f> circles;
-
-	HoughCircles(snippet, circles, CV_HOUGH_GRADIENT, 1, snippet.rows / 8, 200, 100, 0, 0);
+	HoughCircles(snippet, circles, CV_HOUGH_GRADIENT, 1, snippet.rows / 2, 100, 60, 0, 0);
 
 	return false;
 }
@@ -214,7 +213,7 @@ void ImageManager::showContours() {
 	cvDestroyAllWindows();
 }
 
-Mat ImageManager::optimizeImage() {
+Mat ImageManager::optimizeImage(Mat src) {
 	Mat src_opt;
 	cvtColor(src, src_opt, CV_BGR2GRAY);
 	blur(src_opt, src_opt, Size(3, 3));
@@ -223,14 +222,57 @@ Mat ImageManager::optimizeImage() {
 
 	return src_opt;
 }
+
+bool ImageManager::isX(Mat snippet) {
+	vector<Point> snipApprox;
+	vector<Vec4i> snipHierarchy;
+	vector<vector<Point> > snipContours;
+	snippet = optimizeImage(snippet);
+	findContours(snippet.clone(), snipContours, snipHierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
+	for (int i = 0; i < snipContours.size(); i++)
+	{
+		approxPolyDP(cv::Mat(snipContours[i]), snipApprox, cv::arcLength(cv::Mat(snipContours[i]), true)*0.02, true);
+		if (snipApprox.size() == 8) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool ImageManager::isO(Mat snippet) {
+	vector<Vec3f> circles;
+	snippet = optimizeImage(snippet);
+	imshow("isO", snippet);
+	cvWaitKey(0);
+	HoughCircles(snippet, circles, CV_HOUGH_GRADIENT, 1, snippet.rows / 8, 200, 40, 0, 0);
+	if (circles.size() == 0) {
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
 playerOptions ImageManager::detectImage(int cell) {
-	cout << "Enter a value for cell[" << cell << "]: ";
+	/*cout << "Enter a value for cell[" << cell << "]: ";
 	cin >> cell;
 	cout << "\n";
 	if (cell == 1) {
 		return X;
 	}
 	else if (cell == 2) {
+		return O;
+	}
+	return E;*/
+	
+	Mat snippet = Mat(dst, cells[cell]);
+	if (isX(snippet)) {
+		return X;
+	}
+	else if (isO(snippet)) {
 		return O;
 	}
 	return E;
