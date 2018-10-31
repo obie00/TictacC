@@ -18,10 +18,21 @@ int main()
 	}*/
 
 	char file[40] = "TestImages\\tip1.jpg";
-	ImageManager TTTimage(file);
+	Mat source = imread(file);
+	if (source.data == NULL) {
+		cout << "image not found\n";
+		system("pause");
+		return 0;
+	}
+	ImageManager TTTimage(source);
 
 	playerOptions playerCharacter = X;
 	GameManager TTT(playerCharacter);
+	/*
+	maybe move constructor into while loop but keep value of slotsLeft
+	
+	
+	*/
 	while (TTT.getGameState() != gameOver) {
 		for (int i = 0; i < TTT.slotsLeft.size(); i++) {
 			playerOptions choice = TTTimage.detectImage(TTT.slotsLeft[i]);

@@ -26,7 +26,8 @@ public:
 	void displayCells();
 	playerOptions detectImage(int cell);
 
-	ImageManager(char file[40]);
+	ImageManager(Mat source);
+	void ContinueGame(Mat source);
 	~ImageManager();
 
 private:
