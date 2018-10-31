@@ -12,7 +12,7 @@ using namespace std;
 class ImageManager
 {
 public:
-	bool isT = false;
+	bool foundBoard = false;
 	Mat src;
 	Mat src_opt;
 	Mat dst;
@@ -26,7 +26,8 @@ public:
 	void displayCells();
 	playerOptions detectImage(int cell);
 
-	ImageManager(char file[40]);
+	ImageManager(Mat source);
+	void ContinueGame(Mat source);
 	~ImageManager();
 
 private:

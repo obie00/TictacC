@@ -4,38 +4,44 @@
 
 int main()
 {
-	/*
+	playerOptions playerCharacter = X;
+	GameManager TTT(playerCharacter);
 	VideoCapture cap(0); // open the default camera
 	if (!cap.isOpened()) {
 		return -1;
 	}
-	for (;;)
+	for (; TTT.getGameState() != gameOver;)
 	{
 		Mat frame;
 		cap >> frame;
 		imshow("edges", frame);
 		if (waitKey(30) >= 0) break;
-	}*/
 
-	char file[40] = "TestImages\\tip1.jpg";
-	ImageManager TTTimage(file);
 
-	playerOptions playerCharacter = X;
-	GameManager TTT(playerCharacter);
-	while (TTT.getGameState() != gameOver) {
-		for (int i = 0; i < TTT.slotsLeft.size(); i++) {
-			playerOptions choice = TTTimage.detectImage(TTT.slotsLeft[i]);
-			if (choice == TTT.player) {
-				TTT.playerPlay(TTT.slotsLeft[i]);
+		ImageManager TTTimage(frame);
+		/*
+		maybe move constructor into while loop but keep value of slotsLeft
+
+
+		*/
+		if (TTTimage.foundBoard == true) {
+			for (int i = 0; i < TTT.slotsLeft.size(); i++) {
+
+				playerOptions choice = TTTimage.detectImage(TTT.slotsLeft[i]);
+				if (choice == TTT.player) {
+					TTT.playerPlay(TTT.slotsLeft[i]);
+				}
+				else if (choice == TTT.cpu) {
+					TTT.setGameState(cheated);
+				}
+				else {
+					continue;
+				}
+				break;
 			}
-			else if (choice == TTT.cpu) {
-				TTT.setGameState(cheated);
-			}
-			else {
-				continue;
-			}
-			break;
 		}
 	}
+
+	
 	return 0;
 }

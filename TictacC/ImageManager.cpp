@@ -1,20 +1,18 @@
 #include "ImageManager.h"
 #include "cstdlib"
 
-ImageManager::ImageManager(char file[40])
+using namespace std;
+
+ImageManager::ImageManager(Mat source)
 {
-	src = imread(file);
-	if (src.data == NULL) {
-		cout << "image not found\n";
-		system("pause");
-		return;
-	}
+	src = source;
 	src_opt = optimizeImage(src);
 	findContours(src_opt.clone(), contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
 	src.copyTo(dst);
 	findGrid();
 	if (cells != NULL) {
 		//displayCells();
+		cout << "found foard";
 	}
 	else {
 		cout << "can't find board";
@@ -27,7 +25,9 @@ ImageManager::~ImageManager()
 	cvDestroyAllWindows();
 }
 
-using namespace std;
+void ImageManager::ContinueGame(Mat source) {
+
+}
 
 bool ImageManager::findLine(Mat snippet) {
 	Mat dst, color_dst;
@@ -191,9 +191,14 @@ void ImageManager::findGrid() {
 		}
 		if (approx.size() == 4) {
 			if (checkborders(boundingRect(contours[i])) == true) {
+				foundBoard = true;
 				cout << "TTT exists";
 				cells = getCells(contours[i]);
 				break;
+			}
+			else
+			{
+				foundBoard == false;
 			}
 		}
 	}
@@ -245,8 +250,6 @@ bool ImageManager::isX(Mat snippet) {
 bool ImageManager::isO(Mat snippet) {
 	vector<Vec3f> circles;
 	snippet = optimizeImage(snippet);
-	imshow("isO", snippet);
-	cvWaitKey(0);
 	HoughCircles(snippet, circles, CV_HOUGH_GRADIENT, 1, snippet.rows / 8, 200, 40, 0, 0);
 	if (circles.size() == 0) {
 		return false;
@@ -267,7 +270,8 @@ playerOptions ImageManager::detectImage(int cell) {
 		return O;
 	}
 	return E;*/
-	
+	imshow("src", src);
+	cvWaitKey(0);
 	Mat snippet = Mat(dst, cells[cell]);
 	if (isX(snippet)) {
 		return X;
