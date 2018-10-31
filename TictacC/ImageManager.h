@@ -12,7 +12,7 @@ using namespace std;
 class ImageManager
 {
 public:
-	bool isT = false;
+	bool foundBoard = false;
 	Mat src;
 	Mat src_opt;
 	Mat dst;

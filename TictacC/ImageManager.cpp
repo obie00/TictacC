@@ -12,6 +12,7 @@ ImageManager::ImageManager(Mat source)
 	findGrid();
 	if (cells != NULL) {
 		//displayCells();
+		cout << "found foard";
 	}
 	else {
 		cout << "can't find board";
@@ -190,9 +191,14 @@ void ImageManager::findGrid() {
 		}
 		if (approx.size() == 4) {
 			if (checkborders(boundingRect(contours[i])) == true) {
+				foundBoard = true;
 				cout << "TTT exists";
 				cells = getCells(contours[i]);
 				break;
+			}
+			else
+			{
+				foundBoard == false;
 			}
 		}
 	}
@@ -264,7 +270,8 @@ playerOptions ImageManager::detectImage(int cell) {
 		return O;
 	}
 	return E;*/
-	
+	imshow("src", src);
+	cvWaitKey(0);
 	Mat snippet = Mat(dst, cells[cell]);
 	if (isX(snippet)) {
 		return X;
