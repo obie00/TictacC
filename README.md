@@ -11,3 +11,12 @@ Tests that don't work<br/>
 ti5.jpg<br/>
 tip0.jpg<br/>
 ti8.png(not really working well because one of the lines is too long)<br/>
+
+tasks remaining:<br/>
+getimagefromphone<br/>
+displayOutputImg()<br/>
+  draw X
+  draw O
+  add a slash in win situation
+detect win situation<br/>
+make cpu smarter<br/>
