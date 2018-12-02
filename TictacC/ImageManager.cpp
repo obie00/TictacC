@@ -30,6 +30,9 @@ void ImageManager::ContinueGame(Mat source) {
 }
 
 bool ImageManager::findLine(Mat snippet) {
+	if (snippet.rows == 0 || snippet.cols == 0) {
+		return false;
+	}
 	Mat dst, color_dst;
 	dst = snippet.clone();
 	cvtColor(dst, color_dst, COLOR_GRAY2BGR);
@@ -67,7 +70,12 @@ Mat ImageManager::makeMat(int x, int y, int width, int length) {
 	if ((y + length) > src_opt.size().height) {
 		length = src_opt.size().height - y - 1;
 	}
-
+	if (width < 0) {
+		width = 0;
+	}
+	if (length < 0) {
+		length = 0;
+	}
 	Mat cellM = Mat(src_opt, cv::Rect(x, y, width, length));
 	cvDestroyAllWindows();
 	return cellM;
@@ -281,6 +289,14 @@ playerOptions ImageManager::detectImage(int cell) {
 	}
 	return E;
 }
+
+void ImageManager::displayOutputImg() {
+	outputImg = src;
+	for (int i = 0; i < 9; i++) {
+
+	}
+}
+
 void ImageManager::compareGrids() {
 	//for(int i = 0; i < TTT.){}
 }

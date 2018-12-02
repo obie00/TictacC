@@ -6,6 +6,7 @@ enum gameStates {
 	waitingforCpu,
 	gameOver,
 	cheated,
+	gamewon,
 };
 enum playerOptions {
 	E,
