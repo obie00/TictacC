@@ -256,15 +256,34 @@ bool ImageManager::isX(Mat snippet) {
 }
 
 bool ImageManager::isO(Mat snippet) {
-	vector<Vec3f> circles;
 	snippet = optimizeImage(snippet);
-	HoughCircles(snippet, circles, CV_HOUGH_GRADIENT, 1, snippet.rows / 8, 200, 40, 0, 0);
-	if (circles.size() == 0) {
-		return false;
+	vector<vector<Point> > snipContours;
+	vector<Vec4i> snipHierarchy;
+	Mat drawSnipContours = Mat::zeros(snippet.size(), CV_8UC3);
+	vector<Point> approx;
+	findContours(snippet.clone(), snipContours, snipHierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+	for (int i = 0; i < snipContours.size(); i++)
+	{
+		approxPolyDP(Mat(snipContours[i]), approx, arcLength(Mat(snipContours[i]), true)*0.02, true);
+
+		if (!isContourConvex(approx) || (fabs(contourArea(snipContours[i])) < 100)) {
+			continue;
+		}
+
+		double area = cv::contourArea(snipContours[i]);
+		cv::Rect r = cv::boundingRect(snipContours[i]);
+		int radius = r.width / 2;
+
+		//drawContours(drawSnipContours, snipContours, (int)i, Scalar(2, 2, 200), 2, 8, snipHierarchy, 0, Point());
+		double first = abs(1 - ((double)r.width / r.height));
+		double second = abs(1 - (area / (CV_PI * (radius*radius))));
+		if (first <= 0.4 && second <= 0.4) {
+			return true;
+		}
 	}
-	else {
-		return true;
-	}
+	//imshow("drawing", drawSnipContours);
+	//cvWaitKey(0);
+	return false;
 }
 
 playerOptions ImageManager::detectImage(int cell) {
@@ -278,14 +297,18 @@ playerOptions ImageManager::detectImage(int cell) {
 		return O;
 	}
 	return E;*/
-	imshow("src", src);
-	cvWaitKey(0);
 	Mat snippet = Mat(dst, cells[cell]);
-	if (isX(snippet)) {
-		return X;
-	}
-	else if (isO(snippet)) {
+	//imshow("src", snippet);
+	//cvWaitKey(0);
+	if (isO(snippet)) {
+		//imshow("thiscell", snippet);
+		//cvWaitKey(0);
 		return O;
+	}
+	else if (isX(snippet)) {
+		//imshow("thiscell", snippet);
+		//cvWaitKey(0);
+		return X;
 	}
 	return E;
 }
