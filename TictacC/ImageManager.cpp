@@ -241,18 +241,26 @@ bool ImageManager::isX(Mat snippet) {
 	vector<Vec4i> snipHierarchy;
 	vector<vector<Point> > snipContours;
 	snippet = optimizeImage(snippet);
+	Mat drawSnipContours = Mat::zeros(snippet.size(), CV_8UC3);
 	findContours(snippet.clone(), snipContours, snipHierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
 	for (int i = 0; i < snipContours.size(); i++)
 	{
 		approxPolyDP(cv::Mat(snipContours[i]), snipApprox, cv::arcLength(cv::Mat(snipContours[i]), true)*0.02, true);
+		drawContours(drawSnipContours, snipContours, (int)i, Scalar(2, 2, 200), 2, 8, snipHierarchy, 0, Point());
+		bool notConvex = !isContourConvex(snipApprox);
+		bool notSmall = (fabs(contourArea(snipContours[i])) < 100);
+		/*if (notConvex || notConvex) {
+			continue;
+		}*/
 		if (snipApprox.size() == 8) {
+			imshow("drawing", drawSnipContours);
+			cvWaitKey(0);
 			return true;
 		}
-		else {
-			return false;
-		}
 	}
-	return true;
+	imshow("drawing", drawSnipContours);
+	cvWaitKey(0);
+	return false;
 }
 
 bool ImageManager::isO(Mat snippet) {
@@ -260,13 +268,13 @@ bool ImageManager::isO(Mat snippet) {
 	vector<vector<Point> > snipContours;
 	vector<Vec4i> snipHierarchy;
 	Mat drawSnipContours = Mat::zeros(snippet.size(), CV_8UC3);
-	vector<Point> approx;
+	vector<Point> snipApprox;
 	findContours(snippet.clone(), snipContours, snipHierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 	for (int i = 0; i < snipContours.size(); i++)
 	{
-		approxPolyDP(Mat(snipContours[i]), approx, arcLength(Mat(snipContours[i]), true)*0.02, true);
+		approxPolyDP(Mat(snipContours[i]), snipApprox, arcLength(Mat(snipContours[i]), true)*0.02, true);
 
-		if (!isContourConvex(approx) || (fabs(contourArea(snipContours[i])) < 100)) {
+		if (!isContourConvex(snipApprox) || (fabs(contourArea(snipContours[i])) < 100)) {
 			continue;
 		}
 
