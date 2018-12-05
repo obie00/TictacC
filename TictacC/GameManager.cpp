@@ -30,6 +30,11 @@ void GameManager::setGameState(gameStates state) {
 	case waitingforCpu:
 		cpuPlay();
 		break;
+	case waitingforPlayer:
+		if (winCondition()) {
+			setGameState(gameOver);
+		}
+		break;
 	}
 	if (state == gameOver) {
 		//end game
@@ -38,6 +43,51 @@ void GameManager::setGameState(gameStates state) {
 	{
 		//end game
 	}
+}
+
+bool GameManager::winCondition() {
+	if (checkifWon(X) || checkifWon(O)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool GameManager::checkifWon(playerOptions checkPlayer) {
+	if ((gridSlots[0] == checkPlayer) && (gridSlots[1] == checkPlayer) && (gridSlots[2] == checkPlayer)) {
+		finalState = 1;
+		return true;
+	}
+	if ((gridSlots[3] == checkPlayer) && (gridSlots[4] == checkPlayer) && (gridSlots[5] == checkPlayer)) {
+		finalState = 2;
+		return true;
+	}
+	if ((gridSlots[6] == checkPlayer) && (gridSlots[7] == checkPlayer) && (gridSlots[8] == checkPlayer)) {
+		finalState = 3;
+		return true;
+	}
+	if ((gridSlots[0] == checkPlayer) && (gridSlots[3] == checkPlayer) && (gridSlots[6] == checkPlayer)) {
+		finalState = 4;
+		return true;
+	}
+	if ((gridSlots[1] == checkPlayer) && (gridSlots[4] == checkPlayer) && (gridSlots[7] == checkPlayer)) {
+		finalState = 5;
+		return true;
+	}
+	if ((gridSlots[2] == checkPlayer) && (gridSlots[5] == checkPlayer) && (gridSlots[8] == checkPlayer)) {
+		finalState = 6;
+		return true;
+	}
+	if ((gridSlots[0] == checkPlayer) && (gridSlots[4] == checkPlayer) && (gridSlots[8] == checkPlayer)) {
+		finalState = 7;
+		return true;
+	}
+	if ((gridSlots[2] == checkPlayer) && (gridSlots[4] == checkPlayer) && (gridSlots[6] == checkPlayer)) {
+		finalState = 8;
+		return true;
+	}
+	return false;
 }
 
 int GameManager::randomTile() {

@@ -24,10 +24,13 @@ public:
 	std::vector<int> slotsLeft = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
 	gameStates getGameState();
 	void setGameState(gameStates state);
+	int finalState = 0;
 	GameManager(playerOptions playerCharacter);
 	~GameManager();
 
 private:
+	bool winCondition();
+	bool checkifWon(playerOptions checkPlayer);
 	gameStates gameState = notStarted;
 	playerOptions gridSlots[9];
 	std::vector<int> cpuSlotsPlayed;
