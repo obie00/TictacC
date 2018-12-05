@@ -7,22 +7,25 @@ ImageManager::ImageManager(Mat source)
 {
 	src = source;
 	src_opt = optimizeImage(src);
+
 	findContours(src_opt.clone(), contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
+
 	src.copyTo(dst);
-	findGrid();
+	findGrid(src_opt);
+
 	if (cells != NULL) {
 		//displayCells();
-		cout << "found foard";
+		cout << "Found Board!" << endl << endl;
 	}
 	else {
-		cout << "can't find board";
+		cout << "Can't find board!" << endl << endl;
 	}
 }
 
 
 ImageManager::~ImageManager()
 {
-	cvDestroyAllWindows();
+	//cvDestroyAllWindows();
 }
 
 void ImageManager::ContinueGame(Mat source) {
@@ -30,20 +33,20 @@ void ImageManager::ContinueGame(Mat source) {
 }
 
 bool ImageManager::findLine(Mat snippet) {
+
 	if (snippet.rows == 0 || snippet.cols == 0) {
 		return false;
 	}
-	Mat dst, color_dst;
-	dst = snippet.clone();
-	cvtColor(dst, color_dst, COLOR_GRAY2BGR);
-	Mat cdstP = snippet.clone();
+
+	Mat dst = snippet.clone();
+	Mat t_dst = snippet.clone();
+
 	vector<Vec4i> lines;
-	HoughLinesP(dst, lines, 1, CV_PI / 180, 30, 30, 10);
-	for (size_t i = 0; i < lines.size(); i++)
-	{
-		line(color_dst, Point(lines[i][0], lines[i][1]),
-			Point(lines[i][2], lines[i][3]), Scalar(0, 0, 255), 3, 8);
-	}
+
+	Canny(dst, t_dst, 50, 150);
+
+	HoughLinesP(t_dst, lines, 1.0, CV_PI / 180, 30, 30, 20);
+
 	if (lines.size() != 0) {
 		return true;
 	}
@@ -51,6 +54,7 @@ bool ImageManager::findLine(Mat snippet) {
 		return false;
 	}
 }
+
 bool ImageManager::findCircle(Mat snippet) {
 	vector<Vec3f> circles;
 	HoughCircles(snippet, circles, CV_HOUGH_GRADIENT, 1, snippet.rows / 2, 100, 60, 0, 0);
@@ -58,29 +62,36 @@ bool ImageManager::findCircle(Mat snippet) {
 	return false;
 }
 Mat ImageManager::makeMat(int x, int y, int width, int length) {
+
+	// If the x and y coordinates are negative, set them to zero.
 	if (x < 0) {
 		x = 0;
 	}
 	if (y < 0) {
 		y = 0;
 	}
-	if ((x + width) > src_opt.size().width) {
-		width = src_opt.size().width - x - 1;
-	}
-	if ((y + length) > src_opt.size().height) {
-		length = src_opt.size().height - y - 1;
-	}
+
 	if (width < 0) {
 		width = 0;
 	}
 	if (length < 0) {
 		length = 0;
 	}
+
+	if ((x + width) > src_opt.size().width) {
+		width = src_opt.size().width - x - 1;
+	}
+	if ((y + length) > src_opt.size().height) {
+		length = src_opt.size().height - y - 1;
+	}
+
 	Mat cellM = Mat(src_opt, cv::Rect(x, y, width, length));
-	cvDestroyAllWindows();
+	//cvDestroyAllWindows();
+
 	return cellM;
 }
 Rect2i ImageManager::makeCell(int x, int y, int width, int length) {
+
 	if (x < 0) {
 		x = 0;
 	}
@@ -94,7 +105,7 @@ Rect2i ImageManager::makeCell(int x, int y, int width, int length) {
 		width = src.size().height - y - 1;
 	}
 	Rect2i cellM = Rect(x, y, width, length);
-	cvDestroyAllWindows();
+
 	return cellM;
 }
 Rect2i* ImageManager::getCells(vector<Point> scontours) {
@@ -147,10 +158,15 @@ Rect2i* ImageManager::getCells(vector<Point> scontours) {
 }
 
 bool ImageManager::checkborders(Rect box) {
+
+	// Top left corner coordinates of box.
 	int x = box.x;
 	int y = box.y;
+
+	// Height and width of box.
 	int height = box.height;
 	int width = box.width;
+
 	if (findLine(makeMat(x - 10, y - height - 10, 20, height)) == false) {
 		return false;
 	}
@@ -172,41 +188,51 @@ bool ImageManager::checkborders(Rect box) {
 	else if (findLine(makeMat(x + width - 10, y + height + 10, 20, height)) == false) {
 		return false;
 	}
-	if (findLine(makeMat(x + width + 10, y + height - 10, width, 20)) == false) {
+	else if (findLine(makeMat(x + width + 10, y + height - 10, width, 20)) == false) {
 		return false;
 	}
+
 	return true;
 }
 
 void ImageManager::displayCells() {
 	cout << "cells are";
+
 	for (int i = 0; i < 9; i++) {
 		cout << cells[i] << "->";
 		Mat thiscell = Mat(dst, cells[i]);
+
 		imshow("thiscell", thiscell);
 		cvWaitKey(0);
 		cvDestroyAllWindows();
 	}
 }
 
-void ImageManager::findGrid() {
+void ImageManager::findGrid(Mat opt_src) {
+
 	vector<Point> approx;
+
 	for (int i = 0; i < contours.size(); i++)
 	{
-		approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, true);
-		if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx)) {
+		approxPolyDP(Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true) * 0.1, true);
+
+		if (std::fabs(contourArea(contours[i])) < 2500 || !cv::isContourConvex(approx)) {
 			continue;
 		}
+
 		if (approx.size() == 4) {
+
 			if (checkborders(boundingRect(contours[i])) == true) {
 				foundBoard = true;
-				cout << "TTT exists";
+				cout << "TTT Exists!" << endl;
+
 				cells = getCells(contours[i]);
+
 				break;
+
 			}
-			else
-			{
-				foundBoard == false;
+			else {
+				foundBoard = false;
 			}
 		}
 	}
@@ -221,60 +247,68 @@ void ImageManager::showContours() {
 		Scalar color(rand() & 255, rand() & 255, rand() & 255);
 		drawContours(drawing, contours, (int)i, color, 2, 8, hierarchy, 0, Point());
 	}
+
 	imshow("drawing", drawing);
 	cvWaitKey(0);
-	cvDestroyAllWindows();
+	//cvDestroyAllWindows();
 }
 
 Mat ImageManager::optimizeImage(Mat src) {
 	Mat src_opt;
+	Mat kernel = (Mat_<int>(3, 3) << 1, 1, 1, 1, 1, 1, 1, 1, 1);
+
 	cvtColor(src, src_opt, CV_BGR2GRAY);
 	blur(src_opt, src_opt, Size(3, 3));
-	Canny(src_opt, src_opt, 80, 240, 3);
-	cvDestroyAllWindows();
+
+	Canny(src_opt, src_opt, 50, 150, 3);
+
+	// Removes potential holes that can be found inside lines.
+	dilate(src_opt, src_opt, kernel, Point(-1, -1), 5);
+	erode(src_opt, src_opt, kernel, Point(-1, -1), 5);
 
 	return src_opt;
 }
 
 bool ImageManager::isX(Mat snippet) {
+
 	vector<Point> snipApprox;
 	vector<Vec4i> snipHierarchy;
 	vector<vector<Point> > snipContours;
+
 	snippet = optimizeImage(snippet);
-	Mat drawSnipContours = Mat::zeros(snippet.size(), CV_8UC3);
+
 	findContours(snippet.clone(), snipContours, snipHierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
+
 	for (int i = 0; i < snipContours.size(); i++)
 	{
 		approxPolyDP(cv::Mat(snipContours[i]), snipApprox, cv::arcLength(cv::Mat(snipContours[i]), true)*0.02, true);
-		drawContours(drawSnipContours, snipContours, (int)i, Scalar(2, 2, 200), 2, 8, snipHierarchy, 0, Point());
+
 		bool notConvex = !isContourConvex(snipApprox);
 		bool notSmall = (fabs(contourArea(snipContours[i])) < 100);
-		/*if (notConvex || notConvex) {
-			continue;
-		}*/
+
 		if (snipApprox.size() == 8) {
-			imshow("drawing", drawSnipContours);
-			cvWaitKey(0);
 			return true;
 		}
 	}
-	imshow("drawing", drawSnipContours);
-	cvWaitKey(0);
+
 	return false;
 }
 
 bool ImageManager::isO(Mat snippet) {
-	snippet = optimizeImage(snippet);
+
+	Mat c_snippet = optimizeImage(snippet.clone());
 	vector<vector<Point> > snipContours;
 	vector<Vec4i> snipHierarchy;
-	Mat drawSnipContours = Mat::zeros(snippet.size(), CV_8UC3);
-	vector<Point> snipApprox;
-	findContours(snippet.clone(), snipContours, snipHierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+	Mat drawSnipContours = Mat::zeros(c_snippet.size(), CV_8UC3);
+	vector<Point> approx;
+
+	findContours(c_snippet.clone(), snipContours, snipHierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+
 	for (int i = 0; i < snipContours.size(); i++)
 	{
-		approxPolyDP(Mat(snipContours[i]), snipApprox, arcLength(Mat(snipContours[i]), true)*0.02, true);
+		approxPolyDP(Mat(snipContours[i]), approx, arcLength(Mat(snipContours[i]), true)*0.01, true);
 
-		if (!isContourConvex(snipApprox) || (fabs(contourArea(snipContours[i])) < 100)) {
+		if (!isContourConvex(approx) || (fabs(contourArea(snipContours[i])) < 100)) {
 			continue;
 		}
 
@@ -282,50 +316,111 @@ bool ImageManager::isO(Mat snippet) {
 		cv::Rect r = cv::boundingRect(snipContours[i]);
 		int radius = r.width / 2;
 
-		//drawContours(drawSnipContours, snipContours, (int)i, Scalar(2, 2, 200), 2, 8, snipHierarchy, 0, Point());
 		double first = abs(1 - ((double)r.width / r.height));
 		double second = abs(1 - (area / (CV_PI * (radius*radius))));
+
 		if (first <= 0.4 && second <= 0.4) {
 			return true;
 		}
 	}
-	//imshow("drawing", drawSnipContours);
-	//cvWaitKey(0);
+
 	return false;
 }
 
 playerOptions ImageManager::detectImage(int cell) {
-	/*cout << "Enter a value for cell[" << cell << "]: ";
-	cin >> cell;
-	cout << "\n";
-	if (cell == 1) {
-		return X;
-	}
-	else if (cell == 2) {
-		return O;
-	}
-	return E;*/
+
 	Mat snippet = Mat(dst, cells[cell]);
-	//imshow("src", snippet);
-	//cvWaitKey(0);
+
 	if (isO(snippet)) {
-		//imshow("thiscell", snippet);
-		//cvWaitKey(0);
+		cout << "Test O" << endl;
 		return O;
 	}
 	else if (isX(snippet)) {
-		//imshow("thiscell", snippet);
-		//cvWaitKey(0);
+		cout << "Test X" << endl;
 		return X;
 	}
+
 	return E;
 }
 
-void ImageManager::displayOutputImg() {
-	outputImg = src;
-	for (int i = 0; i < 9; i++) {
+Mat ImageManager::getOutputImg(int chosen_cell, playerOptions cpu_symbol) {
+	outputImg = src.clone();
+	Mat roi; // Region of interest: region where the X or O may be drawn on.
 
+	roi = Mat(outputImg, cells[chosen_cell]);
+
+	if (cpu_symbol == X) {
+		roi = drawX(roi);
 	}
+	else if (cpu_symbol == O) {
+		roi = drawCircle(roi);
+	}
+
+	return outputImg;
+}
+
+Mat ImageManager::drawCircle(Mat snippet) {
+
+	int length = snippet.rows;
+	int width = snippet.cols;
+	int radius = 0;
+
+	if (width < length) {
+		radius = (width - 40) / 2;
+	}
+	else {
+		radius = (length - 40) / 2;
+	}
+
+	// Find the center point of the circle.
+	width = width / 2;
+	length = length / 2;
+
+	circle(snippet, Point(width, length), radius, Scalar(0, 0, 255), 3);
+
+	return snippet;
+}
+
+Mat ImageManager::drawX(Mat snippet) {
+
+	int length = snippet.rows;
+	int width = snippet.cols;
+	int c_length = 0;
+	int c_width = 0;
+
+	// Corners of the X.
+	Point tl_corner;
+	Point br_corner;
+	Point bl_corner;
+	Point tr_corner;
+
+	// Find the center point of the snippet. Will be used
+	// to find the corner points of the X.
+	c_width = width / 2;
+	c_length = length / 2;
+
+	length = (length / 2) - 40;
+	width = (width / 2) - 40;
+
+	// Make length == width so the drawn X is symmetrical.
+	if (length < width) {
+		width = length;
+	}
+	else {
+		length = width;
+	}
+
+	tl_corner = Point(c_width - width, c_length + length);
+	br_corner = Point(c_width + width, c_length - length);
+
+	line(snippet, tl_corner, br_corner, Scalar(0, 0, 255), 3);
+
+	tr_corner = Point(c_width + width, c_length + length);
+	bl_corner = Point(c_width - width, c_length - length);
+
+	line(snippet, tr_corner, bl_corner, Scalar(0, 0, 255), 3);
+
+	return snippet;
 }
 
 void ImageManager::compareGrids() {

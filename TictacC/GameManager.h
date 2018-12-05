@@ -7,20 +7,28 @@ enum gameStates {
 	gameOver,
 	cheated,
 	gamewon,
+	gameTied
 };
+
 enum playerOptions {
 	E,
 	X,
 	O,
 };
+
 class GameManager
 {
 public:
 	playerOptions cpu;
 	playerOptions player;
+	playerOptions victory_symbol = E;
+
+	int chosen_tile;
+
 	void startGame(playerOptions playerCharacter);
 	void cpuPlay();
 	void playerPlay(int tile);
+
 	std::vector<int> slotsLeft = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
 	gameStates getGameState();
 	void setGameState(gameStates state);
@@ -36,4 +44,3 @@ private:
 	void updateGrid(int tile, playerOptions option);
 	void removeSlot(int tile);
 };
-
