@@ -132,6 +132,6 @@ void GameManager::startGame(playerOptions playerCharacter) {
 	else {
 		player = O;
 		cpu = X;
-		setGameState(waitingforCpu);
+		setGameState(waitingforPlayer);
 	}
 }

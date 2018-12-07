@@ -5,6 +5,7 @@
 
 int main()
 {
+	int temp = 0;
 	playerOptions playerCharacter = X;
 	GameManager TTT(playerCharacter);
 	VideoCapture cap(0); // open the default camera
@@ -31,6 +32,7 @@ int main()
 				playerOptions choice = TTTimage.detectImage(TTT.slotsLeft[i]);
 				if (choice == TTT.player) {
 					TTT.playerPlay(TTT.slotsLeft[i]);
+					temp = 1;
 				}
 				else if (choice == TTT.cpu) {
 					TTT.setGameState(cheated);
@@ -45,9 +47,14 @@ int main()
 		imshow("Output2", TTTimage.outputImg);
 		//imshow("Output2", TTTimage.outputImg);
 		cvWaitKey(250);
+		if (temp == 1) {
+			//imwrite("TestImages\\outb3.jpg", TTTimage.outputImg);
+			temp = 0;
+		}
 		if (TTT.finalState != 0) {
 			TTTimage.getWinImg(TTT.finalState);
 			imshow("winnImg", TTTimage.winImg);
+			imwrite("TestImages\\winboutb3.jpg", TTTimage.outputImg);
 			cvWaitKey(0);
 		}
 	}

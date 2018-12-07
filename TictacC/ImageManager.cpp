@@ -200,9 +200,9 @@ void ImageManager::displayCells() {
 	for (int i = 0; i < 9; i++) {
 		cout << cells[i] << "->";
 		Mat thiscell = Mat(dst, cells[i]);
-		imshow("thiscell", thiscell);
-		cvWaitKey(0);
-		cvDestroyAllWindows();
+		//imshow("thiscell", thiscell);
+		//cvWaitKey(0);
+		//cvDestroyAllWindows();
 	}
 }
 
@@ -331,9 +331,9 @@ bool tryX(Mat src) {
 		line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, CV_AA);
 	}
 	if (lines4f.size() > 3 && lines4f.size() < 7) {
-		imshow("source", dst);
-		imshow("detected lines", cdst);
-		cvWaitKey(0);
+		//imshow("source", dst);
+		//imshow("detected lines", cdst);
+		//cvWaitKey(0);
 		return true;
 	}
 	else {
