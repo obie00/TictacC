@@ -1,5 +1,3 @@
-
-
 #include "iostream"
 #include "GameManager.h"
 #include "ImageManager.h"
@@ -47,8 +45,12 @@ int main()
 		imshow("Output2", TTTimage.outputImg);
 		//imshow("Output2", TTTimage.outputImg);
 		cvWaitKey(250);
+		if (TTT.finalState != 0) {
+			TTTimage.getWinImg(TTT.finalState);
+			imshow("winnImg", TTTimage.winImg);
+			cvWaitKey(0);
+		}
 	}
-	
 	cvDestroyAllWindows();
 	return 0;
 }

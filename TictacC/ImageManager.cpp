@@ -365,9 +365,9 @@ bool ImageManager::isX(Mat snippet) {
 			cvWaitKey(0);*/
 			double area = contourArea(snipContours[i]);
 			if (area > 10) {
-				imshow("drawing", drawSnipContours);
+				/*imshow("drawing", drawSnipContours);
 				imshow("snippet", snippet);
-				cvWaitKey(0);
+				cvWaitKey(0);*/
 				return true;
 			}
 			if (tryX(snippet) && area > 6) {
@@ -560,4 +560,59 @@ Mat ImageManager::drawX(Mat snippet) {
 	line(snippet, tr_corner, bl_corner, Scalar(0, 0, 255), 3);
 
 	return snippet;
+}
+void ImageManager::colorMat(int i) {
+	winImg = outputImg;
+	Mat roi;
+	Rect2i* cellM = cells;
+	roi = Mat(winImg, cellM[i]);
+	roi = cv::Scalar(255, 255, 0);
+}
+void ImageManager::getWinImg(int state)
+{
+	switch (state)
+	{
+	case 1:
+		colorMat(0);
+		colorMat(1);
+		colorMat(2);
+		break;
+	case 2:
+		colorMat(3);
+		colorMat(4);
+		colorMat(5);
+		break;
+	case 3:
+		colorMat(6);
+		colorMat(7);
+		colorMat(8);
+		break;
+	case 4:
+		colorMat(0);
+		colorMat(3);
+		colorMat(6);
+		break;
+	case 5:
+		colorMat(1);
+		colorMat(4);
+		colorMat(7);
+		break;
+	case 6:
+		colorMat(2);
+		colorMat(5);
+		colorMat(8);
+		break;
+	case 7:
+		colorMat(0);
+		colorMat(4);
+		colorMat(8);
+		break;
+	case 8:
+		colorMat(2);
+		colorMat(4);
+		colorMat(6);
+		break;
+	default:
+		break;
+	}
 }

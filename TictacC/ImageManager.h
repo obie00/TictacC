@@ -17,6 +17,7 @@ public:
 	Mat src_opt;
 	Mat dst;
 	Mat outputImg;
+	Mat winImg;
 	Rect2i* cells = NULL;
 	vector<Point> approx;
 	vector<Vec4i> hierarchy;
@@ -28,6 +29,8 @@ public:
 	playerOptions detectImage(int cell);
 	void displayOutputImg();
 
+	void colorMat(int i);
+	void getWinImg(int state);
 	void getOutputImg(GameManager TTT);
 	ImageManager(Mat source);
 	void ContinueGame(Mat source);
