@@ -1,6 +1,9 @@
+
+
 #include "iostream"
 #include "GameManager.h"
 #include "ImageManager.h"
+
 
 int main()
 {
@@ -13,17 +16,17 @@ int main()
 	for (; TTT.getGameState() != gameOver;)
 	{
 		Mat frame;
+		Mat display;
 		cap >> frame;
-		imshow("edges", frame);
+		display = frame;
+		//imshow("edges", frame);
+		//imshow("displ", display);
+		//cvWaitKey(0);
 		if (waitKey(30) >= 0) break;
 
 
 		ImageManager TTTimage(frame);
-		/*
-		maybe move constructor into while loop but keep value of slotsLeft
-
-
-		*/
+		
 		if (TTTimage.foundBoard == true) {
 			for (int i = 0; i < TTT.slotsLeft.size(); i++) {
 
@@ -40,8 +43,12 @@ int main()
 				break;
 			}
 		}
+		TTTimage.getOutputImg(TTT);
+		imshow("Output2", TTTimage.outputImg);
+		//imshow("Output2", TTTimage.outputImg);
+		cvWaitKey(250);
 	}
-
 	
+	cvDestroyAllWindows();
 	return 0;
 }

@@ -142,7 +142,24 @@ Rect2i* ImageManager::getCells(vector<Point> scontours) {
 	splitCells[7] = makeCell(l2, t2, r2 - l2, t1 - t2);
 	splitCells[8] = makeCell(r2, t2, r1 - r2, t1 - t2);
 
-
+	splitCells[0].x = splitCells[0].x + abs(splitCells[0].width - splitCells[4].width);
+	splitCells[0].width = splitCells[4].width;
+	splitCells[0].y = splitCells[0].y + abs(splitCells[0].height - splitCells[4].height);
+	splitCells[0].height = splitCells[4].height;
+	splitCells[1].y = splitCells[1].y + abs(splitCells[1].height - splitCells[4].height);
+	splitCells[1].height = splitCells[4].height;
+	splitCells[2].width = splitCells[4].width;
+	splitCells[2].y = splitCells[2].y + abs(splitCells[2].height - splitCells[4].height);
+	splitCells[2].height = splitCells[4].height;
+	splitCells[3].x = splitCells[3].x + abs(splitCells[3].width - splitCells[4].width);
+	splitCells[3].width = splitCells[4].width;
+	splitCells[5].width = splitCells[4].width;
+	splitCells[6].x = splitCells[6].x + abs(splitCells[6].width - splitCells[4].width);
+	splitCells[6].width = splitCells[4].width;
+	splitCells[6].height = splitCells[4].height;
+	splitCells[7].height = splitCells[4].height;
+	splitCells[8].width = splitCells[4].width;
+	splitCells[8].height = splitCells[4].height;
 	return splitCells;
 }
 
@@ -221,13 +238,14 @@ void ImageManager::showContours() {
 		Scalar color(rand() & 255, rand() & 255, rand() & 255);
 		drawContours(drawing, contours, (int)i, color, 2, 8, hierarchy, 0, Point());
 	}
-	imshow("drawing", drawing);
-	cvWaitKey(0);
+	//imshow("drawing", drawing);
+	//cvWaitKey(0);
 	cvDestroyAllWindows();
 }
 
 Mat ImageManager::optimizeImage(Mat src) {
 	Mat src_opt;
+	//threshold(src, src_opt, 170, 255, CV_BGR2GRAY);
 	cvtColor(src, src_opt, CV_BGR2GRAY);
 	blur(src_opt, src_opt, Size(3, 3));
 	Canny(src_opt, src_opt, 80, 240, 3);
@@ -236,6 +254,95 @@ Mat ImageManager::optimizeImage(Mat src) {
 	return src_opt;
 }
 
+bool ImageManager::findX(vector<Point> snipApprox) {
+	Point center;
+	int centers = 4;
+	int validPoints = 4;
+	vector<Point> borders;
+	for (int a = 0; a < 2; a++) {
+		int t = 1000, b = 0;
+		for (int i = 0; i < snipApprox.size(); i++) {
+			//snipApprox.erase(snipApprox.begin() + i);
+			if (snipApprox[i].y < t) {
+				t = snipApprox[i].y;
+			}
+			if (snipApprox[i].y > b) {
+				b = snipApprox[i].y;
+			}
+		}
+		bool te = true;
+		bool be = true;
+		int i = 0;
+		while ((te || be) && (i < snipApprox.size())) {
+			if ((snipApprox[i].y == t) && te) {
+				borders.push_back(snipApprox[i]);
+				snipApprox.erase(snipApprox.begin() + i);
+				te = false;
+			}
+			else if ((snipApprox[i].y == b) && be) {
+				borders.push_back(snipApprox[i]);
+				snipApprox.erase(snipApprox.begin() + i);
+				be = false;
+			}
+			i++;
+		}
+	}
+	if (snipApprox.size() > 4) {
+		return false;
+	}
+	center = snipApprox[0];
+	for (int i = 0; i < 3; i++) {
+		int xlen = center.x - borders[i].x;
+		int ylen = center.y - borders[i].y;
+		double centerlen = sqrt(abs((xlen * xlen) - (ylen*ylen)));
+		if ((centerlen < 30) || (centerlen > 85)) {
+			return false;
+		}
+	}
+	validPoints--;
+	centers--;
+	for (int i = 1; i < 4; i++) {
+		if (centers > 0) {
+			int xdif = center.x - snipApprox[i].x;
+			int ydif = center.y - snipApprox[i].y;
+			if ((xdif < 12) && (ydif < 12)) {
+				validPoints--;
+				centers--;
+			}
+		}
+	}
+	if ((validPoints > 0) || (snipApprox.size() > 4)) {
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+bool tryX(Mat src) {
+	Mat dst, cdst;
+	Canny(src, dst, 50, 200, 3);
+	cvtColor(dst, cdst, CV_GRAY2BGR);
+
+	vector<Vec4i> lines4f;
+	HoughLinesP(dst, lines4f, 1, CV_PI / 180, 50, 50, 10);
+	for (size_t i = 0; i < lines4f.size(); i++)
+	{
+		Vec4i l = lines4f[i];
+		line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, CV_AA);
+	}
+	if (lines4f.size() > 3 && lines4f.size() < 7) {
+		imshow("source", dst);
+		imshow("detected lines", cdst);
+		cvWaitKey(0);
+		return true;
+	}
+	else {
+		/*imshow("source", dst);
+		imshow("detected lines", cdst);
+		cvWaitKey(200);*/
+		return false;
+	}
+}
 bool ImageManager::isX(Mat snippet) {
 	vector<Point> snipApprox;
 	vector<Vec4i> snipHierarchy;
@@ -253,13 +360,30 @@ bool ImageManager::isX(Mat snippet) {
 			continue;
 		}*/
 		if (snipApprox.size() == 8) {
-			imshow("drawing", drawSnipContours);
-			cvWaitKey(0);
-			return true;
+			/*imshow("drawing", drawSnipContours);
+			imshow("snippet", snippet);
+			cvWaitKey(0);*/
+			double area = contourArea(snipContours[i]);
+			if (area > 10) {
+				imshow("drawing", drawSnipContours);
+				imshow("snippet", snippet);
+				cvWaitKey(0);
+				return true;
+			}
+			if (tryX(snippet) && area > 6) {
+				return true;
+			}
+			/*if (findX(snipApprox)) {
+				//imshow("drawing", drawSnipContours);
+				//cvWaitKey(0);
+				imwrite("TestImages\\wrong.jpg", drawSnipContours);
+				findX(snipApprox);
+				return true;
+			}*/
 		}
 	}
-	imshow("drawing", drawSnipContours);
-	cvWaitKey(0);
+	/*imshow("drawing", drawSnipContours);
+	cvWaitKey(0);*/
 	return false;
 }
 
@@ -330,4 +454,110 @@ void ImageManager::displayOutputImg() {
 
 void ImageManager::compareGrids() {
 	//for(int i = 0; i < TTT.){}
+}
+
+void ImageManager::getOutputImg(GameManager TTT) {
+	outputImg = src;
+	if (cells == NULL) {
+		return;
+	}
+	Mat roi; // Region of interest: region where the X or O may be drawn on.
+	int x, y, width, length;
+	Rect2i* cellM = cells;
+	//Rect2i cellM = Rect(x, y, width, length);
+	cellM[0].x = cells[0].x + (cells[0].width - cells[4].width);
+	cellM[0].y = cells[0].y + (cells[0].height - cells[4].height);
+	cellM[1].y = cells[1].y + (cells[1].height - cells[4].height);
+	cellM[2].width = cells[4].width;
+	cellM[2].y = cells[2].y + (cells[2].height - cells[4].height);
+	cellM[3].x = cells[3].x + (cells[3].width - cells[4].width);
+	cellM[4];
+	cellM[5].width = cells[4].width;
+	cellM[6].x = cells[6].x + (cells[6].width - cells[4].width);
+	cellM[6].height = cells[4].height;
+	cellM[7].height = cells[4].height;
+	cellM[8].width = cells[4].width;
+	cellM[8].height = cells[4].height;
+
+
+	for (int i = 0; i < 9; i++) {
+		roi = Mat(outputImg, cellM[i]);
+		if (TTT.gridSlots[i] == TTT.cpu) {
+			if (TTT.cpu == X) {
+				roi = drawX(roi);
+			}
+			else {
+				roi = drawCircle(roi);
+			}
+		}
+	}
+	return;
+}
+
+Mat ImageManager::drawCircle(Mat snippet) {
+
+	int length = snippet.rows;
+	int width = snippet.cols;
+	int radius = 0;
+
+	if (width < length) {
+		radius = (width - (width * .4)) / 2;
+	}
+	else {
+		radius = (length - (length * .4)) / 2;
+	}
+
+	if (radius <= 0) {
+		radius = 20;
+	}
+
+	// Find the center point of the circle.
+	width = width / 2;
+	length = length / 2;
+
+	circle(snippet, Point(width, length), radius, Scalar(0, 0, 255), 3);
+
+	return snippet;
+}
+
+Mat ImageManager::drawX(Mat snippet) {
+
+	int length = snippet.rows;
+	int width = snippet.cols;
+	int c_length = 0;
+	int c_width = 0;
+
+	// Corners of the X.
+	Point tl_corner;
+	Point br_corner;
+	Point bl_corner;
+	Point tr_corner;
+
+	// Find the center point of the snippet. Will be used
+	// to find the corner points of the X.
+	c_width = width / 2;
+	c_length = length / 2;
+
+	length = (length / 2) - 40;
+	width = (width / 2) - 40;
+
+	// Make length == width so the drawn X is symmetrical.
+	if (length < width) {
+		width = length;
+	}
+	else {
+		length = width;
+	}
+
+	tl_corner = Point(c_width - width, c_length + length);
+	br_corner = Point(c_width + width, c_length - length);
+
+	line(snippet, tl_corner, br_corner, Scalar(0, 0, 255), 3);
+
+	tr_corner = Point(c_width + width, c_length + length);
+	bl_corner = Point(c_width - width, c_length - length);
+
+	line(snippet, tr_corner, bl_corner, Scalar(0, 0, 255), 3);
+
+	return snippet;
 }

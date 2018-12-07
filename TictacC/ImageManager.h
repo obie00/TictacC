@@ -28,11 +28,14 @@ public:
 	playerOptions detectImage(int cell);
 	void displayOutputImg();
 
+	void getOutputImg(GameManager TTT);
 	ImageManager(Mat source);
 	void ContinueGame(Mat source);
 	~ImageManager();
 
 private:
+	Mat drawCircle(Mat snippet);
+	Mat drawX(Mat snippet);
 	Point imgCenter;//Point(w / 2.0, w / 2.0);
 	bool findLine(Mat snippet);
 	bool findCircle(Mat snippet);
@@ -41,6 +44,7 @@ private:
 	Rect2i* getCells(vector<Point> scontours);
 	bool checkborders(Rect box);
 	Mat optimizeImage(Mat src);
+	bool findX(vector<Point> snipApprox);
 	bool isX(Mat snippet);
 	bool isO(Mat snippet);
 	void compareGrids();

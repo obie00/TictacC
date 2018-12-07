@@ -25,6 +25,7 @@ public:
 	gameStates getGameState();
 	void setGameState(gameStates state);
 	int finalState = 0;
+	playerOptions gridSlots[9];
 	GameManager(playerOptions playerCharacter);
 	~GameManager();
 
@@ -32,7 +33,7 @@ private:
 	bool winCondition();
 	bool checkifWon(playerOptions checkPlayer);
 	gameStates gameState = notStarted;
-	playerOptions gridSlots[9];
+	
 	std::vector<int> cpuSlotsPlayed;
 	int movesLeft = 9;
 	int randomTile();
