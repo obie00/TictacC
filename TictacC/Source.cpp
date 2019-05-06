@@ -5,6 +5,8 @@
 
 int main()
 {
+	bool showme = false;
+	int showi = 0;
 	int temp = 0;
 	playerOptions playerCharacter = X;
 	GameManager TTT(playerCharacter);
@@ -18,19 +20,20 @@ int main()
 		Mat display;
 		cap >> frame;
 		display = frame;
-		//imshow("edges", frame);
-		//imshow("displ", display);
-		//cvWaitKey(0);
+		//frame = imread("C:\\Users\\omoob\\Desktop\\helpmer.png");
+		
 		if (waitKey(30) >= 0) break;
 
 
 		ImageManager TTTimage(frame);
 		
 		if (TTTimage.foundBoard == true) {
+			//TTTimage.displayCells();
 			for (int i = 0; i < TTT.slotsLeft.size(); i++) {
 
 				playerOptions choice = TTTimage.detectImage(TTT.slotsLeft[i]);
 				if (choice == TTT.player) {
+					showme = true;
 					TTT.playerPlay(TTT.slotsLeft[i]);
 					temp = 1;
 				}
@@ -45,7 +48,12 @@ int main()
 		}
 		TTTimage.getOutputImg(TTT);
 		imshow("Output2", TTTimage.outputImg);
-		//imshow("Output2", TTTimage.outputImg);
+		if (showme) {
+			imwrite("C:\\Users\\omoob\\Desktop\\projExamples\\ex" + to_string(showi+7) + ".png", TTTimage.outputImg);
+			showi++;
+			showme = false;
+		}
+		
 		cvWaitKey(250);
 		if (temp == 1) {
 			//imwrite("TestImages\\outb3.jpg", TTTimage.outputImg);

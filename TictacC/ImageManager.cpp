@@ -200,9 +200,9 @@ void ImageManager::displayCells() {
 	for (int i = 0; i < 9; i++) {
 		cout << cells[i] << "->";
 		Mat thiscell = Mat(dst, cells[i]);
-		//imshow("thiscell", thiscell);
-		//cvWaitKey(0);
-		//cvDestroyAllWindows();
+		imshow("thiscell", thiscell);
+		cvWaitKey(0);
+		cvDestroyAllWindows();
 	}
 }
 
@@ -215,6 +215,7 @@ void ImageManager::findGrid() {
 			continue;
 		}
 		if (approx.size() == 4) {
+			//imwrite("C:\\Users\\omoob\\Desktop\\helpme.png", src);
 			if (checkborders(boundingRect(contours[i])) == true) {
 				foundBoard = true;
 				cout << "TTT exists";
@@ -245,7 +246,7 @@ void ImageManager::showContours() {
 
 Mat ImageManager::optimizeImage(Mat src) {
 	Mat src_opt;
-	//threshold(src, src_opt, 170, 255, CV_BGR2GRAY);
+	Mat temp_opt;
 	cvtColor(src, src_opt, CV_BGR2GRAY);
 	blur(src_opt, src_opt, Size(3, 3));
 	Canny(src_opt, src_opt, 80, 240, 3);
@@ -385,6 +386,13 @@ bool ImageManager::isX(Mat snippet) {
 	/*imshow("drawing", drawSnipContours);
 	cvWaitKey(0);*/
 	return false;
+
+	int detectedClass = testClasses(snippet);
+	if (detectedClass == 1) {
+		return true;
+	}
+
+
 }
 
 bool ImageManager::isO(Mat snippet) {
@@ -416,6 +424,14 @@ bool ImageManager::isO(Mat snippet) {
 	//imshow("drawing", drawSnipContours);
 	//cvWaitKey(0);
 	return false;
+	//using trained classifier
+	int detectedClass = testClasses(snippet);
+	if (detectedClass == 0) {
+		return true;
+	}
+
+
+	
 }
 
 playerOptions ImageManager::detectImage(int cell) {
@@ -615,4 +631,67 @@ void ImageManager::getWinImg(int state)
 	default:
 		break;
 	}
+}
+
+
+int ImageManager::testClasses(Mat imgSnippet)
+{
+	Mat classif1 = imread("C:\\Users\\omoob\\Desktop\\trainedClass\\class1.png");
+	Mat classif2 = imread("C:\\Users\\omoob\\Desktop\\trainedClass\\class2.png");
+	vector<Mat> classifiers;
+	classifiers.push_back(classif1);
+	classifiers.push_back(classif2);
+
+	Mat img = imgSnippet;
+	img = optimizeImage(img);
+
+	vector<int> precision;
+
+	int chosenClass = -1;
+	double maxClassProbabilty = 0;
+	int bestPrecision = 0;
+	for (int i = 0; i < classifiers.size(); i++) {
+		double currentClassProbabilty = 1;
+		int currentPrecision = 0;
+		for (int j = 0; j < img.rows; j++) {
+			for (int k = 0; k < img.cols; k++) {
+				double currentClassPix = double(classifiers[i].at<uchar>(j, k) + 1);
+				double pixelAverage = currentClassPix / double(36);
+				int imgPixel = img.at<uchar>(j, k);
+				if (imgPixel == 0) {
+					currentClassProbabilty = currentClassProbabilty * pixelAverage;
+				}
+				else {
+					currentClassProbabilty = currentClassProbabilty * (1 - pixelAverage);
+				}
+			}
+			if (currentClassProbabilty < 6.2107058365249902e-200) {
+				currentPrecision = currentPrecision + 1;
+				currentClassProbabilty = currentClassProbabilty * 10e199;
+			}
+		}
+		if ((currentPrecision < bestPrecision) || (bestPrecision == 0)) {
+			maxClassProbabilty = currentClassProbabilty;
+			bestPrecision = currentPrecision;
+			chosenClass = i;
+		}
+		if (currentPrecision == bestPrecision) {
+			if (currentClassProbabilty > maxClassProbabilty) {
+				maxClassProbabilty = currentClassProbabilty;
+				bestPrecision = currentPrecision;
+				chosenClass = i;
+			}
+		}
+		/*if (currentClassProbabilty > maxClassProbabilty) {
+			if ((currentPrecision == bestPrecision)||(bestPrecision==0)) {
+				maxClassProbabilty = currentClassProbabilty;
+				bestPrecision = currentPrecision;
+				chosenClass = i;
+			}
+			else {
+
+			}
+		}*/
+	}
+	return chosenClass;
 }

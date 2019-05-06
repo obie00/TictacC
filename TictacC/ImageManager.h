@@ -36,6 +36,8 @@ public:
 	void ContinueGame(Mat source);
 	~ImageManager();
 
+	int testClasses(Mat imgSnippet);
+
 private:
 	Mat drawCircle(Mat snippet);
 	Mat drawX(Mat snippet);
